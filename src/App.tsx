@@ -1,418 +1,114 @@
 import React from "react";
+import Counter from "./components/Counter";
+import MenuLine from "./components/MenuLine";
+import Need from "./components/Need";
+import { Meal, CounterList, Food } from "./utils/types";
+import {
+  defaultCounters,
+  defaultValues,
+  countersDef,
+  needDef
+} from "./utils/Global";
 
 const App: React.FC = () => {
+  const [counter, setCounter] = React.useState(defaultCounters);
+  const [meals, setMeals] = React.useState<Array<Meal>>(defaultValues);
+
+  const updateCounter = (name: keyof CounterList, step: number): void => {
+    const copyCounter = { ...counter };
+    if (copyCounter[name] + step >= 0) {
+      copyCounter[name] = copyCounter[name] + step;
+      setCounter(copyCounter);
+    }
+  };
+
+  const updateMeal = (day: string, isMidday: boolean, food: string): void => {
+    const copyMeals = [...meals];
+    copyMeals.map(item => {
+      if (item.day === day) {
+        if (isMidday) {
+          item.midday = food;
+        } else {
+          item.evening = food;
+        }
+      }
+      return item;
+    });
+    setMeals(copyMeals);
+  };
+
+  const counterList = countersDef.map((item, index) => (
+    <Counter
+      key={index}
+      backgroundImage={item.backgroundImage}
+      title={item.title}
+      label={item.label}
+      count={counter[item.counter]}
+      onIncrease={() => updateCounter(item.counter, item.step)}
+      onDecrease={() => updateCounter(item.counter, item.step * -1)}
+    />
+  ));
+
+  const mealsList = meals.map(item => (
+    <MenuLine
+      key={item.day}
+      day={item.day}
+      middayMeal={item.midday}
+      eveningMeal={item.evening}
+      onChangeMiddayMeal={updateMeal}
+      onChangeEveningMeal={updateMeal}
+    />
+  ));
+
+  const getNbMeal = (food: Food): number => {
+    return (
+      meals.filter((item: Meal) => item.midday === food).length +
+      meals.filter((item: Meal) => item.evening === food).length
+    );
+  };
+
+  const getKg = (
+    name: keyof CounterList,
+    label: string,
+    food: Food
+  ): string => {
+    const result =
+      (counter[name] * counter.person * counter.week * getNbMeal(food)) / 1000;
+    return ` ${result.toFixed(2)}${label}`;
+  };
+
+  const getNb = (name: keyof CounterList, food: Food): string => {
+    const nb =
+      (counter[name] * counter.person * counter.week * getNbMeal(food)) / 500;
+    const result = Math.ceil(nb);
+
+    return `Soit ${result.toFixed()} ${
+      result > 1 ? "paquets" : "paquet"
+    } de 500g`;
+  };
+
+  const needsList = needDef.map((item, index) => (
+    <Need
+      key={index}
+      backgroundImage={item.bgImage}
+      title={getKg(item.counter, item.category, item.food)}
+      quantity={getNb(item.counter, item.food)}
+    />
+  ));
+
   return (
     <div className="box app">
       <h1 className="box title">Semoule - Pâtes - Riz</h1>
-      <div className="counter">
-        <p className="counter--label">Nombre de personnes</p>
-        <div
-          className="counter--buttons"
-          style={{
-            backgroundImage:
-              "linear-gradient(326deg, rgb(164, 80, 139) 0%, rgb(95, 10, 135) 74%)"
-          }}
-        >
-          <button>
-            <svg
-              width={24}
-              height={24}
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth={2}
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="feather feather-minus-square"
-            >
-              <rect x={3} y={3} width={18} height={18} rx={2} ry={2} />
-              <line x1={8} y1={12} x2={16} y2={12} />
-            </svg>
-          </button>
-          <span>2 Personnes</span>
-          <button>
-            <svg
-              width={24}
-              height={24}
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth={2}
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="feather feather-plus-square"
-            >
-              <rect x={3} y={3} width={18} height={18} rx={2} ry={2} />
-              <line x1={12} y1={8} x2={12} y2={16} />
-              <line x1={8} y1={12} x2={16} y2={12} />
-            </svg>
-          </button>
-        </div>
-      </div>
-      <div className="counter">
-        <p className="counter--label">Stock pour</p>
-        <div
-          className="counter--buttons"
-          style={{
-            backgroundImage:
-              "linear-gradient(315deg, rgb(231, 144, 135) 0%, rgb(134, 120, 95) 74%)"
-          }}
-        >
-          <button>
-            <svg
-              width={24}
-              height={24}
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth={2}
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="feather feather-minus-square"
-            >
-              <rect x={3} y={3} width={18} height={18} rx={2} ry={2} />
-              <line x1={8} y1={12} x2={16} y2={12} />
-            </svg>
-          </button>
-          <span>2 Semaines</span>
-          <button>
-            <svg
-              width={24}
-              height={24}
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth={2}
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="feather feather-plus-square"
-            >
-              <rect x={3} y={3} width={18} height={18} rx={2} ry={2} />
-              <line x1={12} y1={8} x2={12} y2={16} />
-              <line x1={8} y1={12} x2={16} y2={12} />
-            </svg>
-          </button>
-        </div>
-      </div>
-      <div className="counter">
-        <p className="counter--label">Portion de pâtes</p>
-        <div
-          className="counter--buttons"
-          style={{
-            backgroundImage:
-              "linear-gradient(115deg, rgb(31, 209, 249) 0%, rgb(182, 33, 254) 74%)"
-          }}
-        >
-          <button>
-            <svg
-              width={24}
-              height={24}
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth={2}
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="feather feather-minus-square"
-            >
-              <rect x={3} y={3} width={18} height={18} rx={2} ry={2} />
-              <line x1={8} y1={12} x2={16} y2={12} />
-            </svg>
-          </button>
-          <span>70 Grammes</span>
-          <button>
-            <svg
-              width={24}
-              height={24}
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth={2}
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="feather feather-plus-square"
-            >
-              <rect x={3} y={3} width={18} height={18} rx={2} ry={2} />
-              <line x1={12} y1={8} x2={12} y2={16} />
-              <line x1={8} y1={12} x2={16} y2={12} />
-            </svg>
-          </button>
-        </div>
-      </div>
-      <div className="counter">
-        <p className="counter--label">Portion de riz</p>
-        <div
-          className="counter--buttons"
-          style={{
-            backgroundImage:
-              "linear-gradient(115deg, rgb(10, 188, 249) 0%, rgb(44, 105, 209) 74%)"
-          }}
-        >
-          <button>
-            <svg
-              width={24}
-              height={24}
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth={2}
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="feather feather-minus-square"
-            >
-              <rect x={3} y={3} width={18} height={18} rx={2} ry={2} />
-              <line x1={8} y1={12} x2={16} y2={12} />
-            </svg>
-          </button>
-          <span>60 Grammes</span>
-          <button>
-            <svg
-              width={24}
-              height={24}
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth={2}
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="feather feather-plus-square"
-            >
-              <rect x={3} y={3} width={18} height={18} rx={2} ry={2} />
-              <line x1={12} y1={8} x2={12} y2={16} />
-              <line x1={8} y1={12} x2={16} y2={12} />
-            </svg>
-          </button>
-        </div>
-      </div>
-      <div className="counter">
-        <p className="counter--label">Portion de semoule</p>
-        <div
-          className="counter--buttons"
-          style={{
-            backgroundImage:
-              "linear-gradient(115deg, rgb(177, 191, 216) 0%, rgb(103, 130, 180) 74%)"
-          }}
-        >
-          <button>
-            <svg
-              width={24}
-              height={24}
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth={2}
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="feather feather-minus-square"
-            >
-              <rect x={3} y={3} width={18} height={18} rx={2} ry={2} />
-              <line x1={8} y1={12} x2={16} y2={12} />
-            </svg>
-          </button>
-          <span>80 Grammes</span>
-          <button>
-            <svg
-              width={24}
-              height={24}
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth={2}
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="feather feather-plus-square"
-            >
-              <rect x={3} y={3} width={18} height={18} rx={2} ry={2} />
-              <line x1={12} y1={8} x2={12} y2={16} />
-              <line x1={8} y1={12} x2={16} y2={12} />
-            </svg>
-          </button>
-        </div>
-      </div>
+      {counterList}
+
       <div className="menu">
         <p className="menu--label">Menu de la semaine</p>
-        <div className="menu--block">
-          <div className="menu--line">
-            <p className="menu--day">lundi</p>
-            <div className="menu--selects">
-              <div className="menu--meal">
-                <p>Midi</p>
-                <select>
-                  <option value="pates">Pates</option>
-                  <option value="riz">Riz</option>
-                  <option value="semoule">Semoule</option>
-                </select>
-              </div>
-              <div className="menu--meal">
-                <p>Soir</p>
-                <select>
-                  <option value="pates">Pâtes</option>
-                  <option value="riz">Riz</option>
-                  <option value="semoule">Semoule</option>
-                </select>
-              </div>
-            </div>
-          </div>
-          <div className="menu--line">
-            <p className="menu--day">mardi</p>
-            <div className="menu--selects">
-              <div className="menu--meal">
-                <p>Midi</p>
-                <select>
-                  <option value="pates">Pates</option>
-                  <option value="riz">Riz</option>
-                  <option value="semoule">Semoule</option>
-                </select>
-              </div>
-              <div className="menu--meal">
-                <p>Soir</p>
-                <select>
-                  <option value="pates">Pâtes</option>
-                  <option value="riz">Riz</option>
-                  <option value="semoule">Semoule</option>
-                </select>
-              </div>
-            </div>
-          </div>
-          <div className="menu--line">
-            <p className="menu--day">mercredi</p>
-            <div className="menu--selects">
-              <div className="menu--meal">
-                <p>Midi</p>
-                <select>
-                  <option value="pates">Pates</option>
-                  <option value="riz">Riz</option>
-                  <option value="semoule">Semoule</option>
-                </select>
-              </div>
-              <div className="menu--meal">
-                <p>Soir</p>
-                <select>
-                  <option value="pates">Pâtes</option>
-                  <option value="riz">Riz</option>
-                  <option value="semoule">Semoule</option>
-                </select>
-              </div>
-            </div>
-          </div>
-          <div className="menu--line">
-            <p className="menu--day">jeudi</p>
-            <div className="menu--selects">
-              <div className="menu--meal">
-                <p>Midi</p>
-                <select>
-                  <option value="pates">Pates</option>
-                  <option value="riz">Riz</option>
-                  <option value="semoule">Semoule</option>
-                </select>
-              </div>
-              <div className="menu--meal">
-                <p>Soir</p>
-                <select>
-                  <option value="pates">Pâtes</option>
-                  <option value="riz">Riz</option>
-                  <option value="semoule">Semoule</option>
-                </select>
-              </div>
-            </div>
-          </div>
-          <div className="menu--line">
-            <p className="menu--day">vendredi</p>
-            <div className="menu--selects">
-              <div className="menu--meal">
-                <p>Midi</p>
-                <select>
-                  <option value="pates">Pates</option>
-                  <option value="riz">Riz</option>
-                  <option value="semoule">Semoule</option>
-                </select>
-              </div>
-              <div className="menu--meal">
-                <p>Soir</p>
-                <select>
-                  <option value="pates">Pâtes</option>
-                  <option value="riz">Riz</option>
-                  <option value="semoule">Semoule</option>
-                </select>
-              </div>
-            </div>
-          </div>
-          <div className="menu--line">
-            <p className="menu--day">samedi</p>
-            <div className="menu--selects">
-              <div className="menu--meal">
-                <p>Midi</p>
-                <select>
-                  <option value="pates">Pates</option>
-                  <option value="riz">Riz</option>
-                  <option value="semoule">Semoule</option>
-                </select>
-              </div>
-              <div className="menu--meal">
-                <p>Soir</p>
-                <select>
-                  <option value="pates">Pâtes</option>
-                  <option value="riz">Riz</option>
-                  <option value="semoule">Semoule</option>
-                </select>
-              </div>
-            </div>
-          </div>
-          <div className="menu--line">
-            <p className="menu--day">dimanche</p>
-            <div className="menu--selects">
-              <div className="menu--meal">
-                <p>Midi</p>
-                <select>
-                  <option value="pates">Pates</option>
-                  <option value="riz">Riz</option>
-                  <option value="semoule">Semoule</option>
-                </select>
-              </div>
-              <div className="menu--meal">
-                <p>Soir</p>
-                <select>
-                  <option value="pates">Pâtes</option>
-                  <option value="riz">Riz</option>
-                  <option value="semoule">Semoule</option>
-                </select>
-              </div>
-            </div>
-          </div>
-        </div>
+        <div className="menu--block">{mealsList}</div>
       </div>
+
       <div className="needs">
         <p className="needs--label">Il vous faut</p>
-        <div
-          className="need"
-          style={{
-            backgroundImage:
-              "linear-gradient(315deg, rgb(31, 209, 249) 0%, rgb(182, 33, 254) 74%)"
-          }}
-        >
-          <h2>1.4kg de pâtes</h2>
-          <p>Soit 3 paquets de 500g</p>
-        </div>
-        <div
-          className="need"
-          style={{
-            backgroundImage:
-              "linear-gradient(315deg, rgb(10, 188, 249) 0%, rgb(44, 105, 209) 74%)"
-          }}
-        >
-          <h2>1.2kg de riz</h2>
-          <p>Soit 3 paquets de 500g</p>
-        </div>
-        <div
-          className="need"
-          style={{
-            backgroundImage:
-              "linear-gradient(315deg, rgb(177, 191, 216) 0%, rgb(103, 130, 180) 74%)"
-          }}
-        >
-          <h2>1.28kg de semoule</h2>
-          <p>Soit 3 paquets de 500g</p>
-        </div>
+        {needsList}
       </div>
     </div>
   );
