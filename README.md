@@ -8,9 +8,9 @@ Les quantités sont calculées en fonction des critères suivants :
 
 - Nombre de personnes
 - Nombre de semaines
-- portion en grammes de chaque aliment
+- Portion en grammes de chaque aliment
 
-![Gif demo](src/demo/semoule.gif)
+![Gif demo](src/demo/Semoule.gif)
 
 ## Infos
 
